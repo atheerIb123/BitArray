@@ -25,7 +25,7 @@ void TestSetAndGet()
     arr.SetAt(7, true);
     assert(arr.GetAt(7) == true);
     assert(arr.GetAt(6) == false);
-
+    
     cout << "TestSetAndGet passed" << endl;
 }
 
@@ -38,7 +38,7 @@ void TestExpandPadding()
      
     assert(arr.GetAt(3) == true);
     assert(arr.GetAt(100) == true);
-
+    
     for (size_t i = 4; i < 100; i++)
         assert(arr.GetAt(i) == false);
 
@@ -128,6 +128,55 @@ void TestCopyOfEmptyArray()
     cout << "TestCopyOfEmptyArray passed" << endl;
 }
 
+void TestToBinaryStr()
+{
+    //normal test
+    char output[9];
+    BitArray arr; 
+    for (size_t i = 0 ; i < 8 ; i++)
+    {
+        arr.SetAt(i, true);
+    }
+
+    assert(arr.ToBinaryStr(output, 8) == true);
+    assert(strcmp(output, "11111111") == 0);
+    
+    //test biger input size..
+    assert(arr.ToBinaryStr(output, 12) == false);
+
+    //test alternating 
+    char output2[13];
+    for (size_t i = 0 ; i < 12 ; i++)
+    {
+        arr.SetAt(i, i % 2);
+    }
+
+    assert(arr.ToBinaryStr(output2, 12) == true);
+    assert(strcmp(output2, "101010101010") == 0);
+
+    cout << "TestToBinaryStr passed" << endl;
+}
+
+void TestFromBinaryStr()
+{
+    BitArray arr;
+    arr.SetAt(9, true);
+    //Changing bit index 9 to false
+    assert(arr.FromBinaryStr("1111111110", 10) == true);
+    assert(arr.GetAt(9) == false);
+
+    //Chaning it back to true
+    assert(arr.FromBinaryStr("1111111111", 10) == true);
+    assert(arr.GetAt(9) == true);
+    
+    char output[11];
+    //Changing it so it contains zeros only
+    assert(arr.FromBinaryStr("0000000000", 10) == true);
+    assert(arr.ToBinaryStr(output, 10) == true);
+    assert(strcmp(output, "0000000000") == 0);
+
+    cout << "TestFromBinaryStr passed" << endl;
+}
 int main()
 {
     TestDefaultConstructor();
@@ -138,6 +187,8 @@ int main()
     TestCopyConstructor();
     TestLargeIndex();
     TestCopyOfEmptyArray();
+    TestToBinaryStr();
+    TestFromBinaryStr();
 
     cout << "\nAll tests passed!" << endl;
     return 0;
