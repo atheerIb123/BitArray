@@ -88,3 +88,57 @@ bool BitArray::GetAt(size_t index) const
     
     return (this->m_data[indexInBytes] & bitMask) != 0; //bitwise AND for getting the value of the specific index (1 would be in the bit we'd like to return from m_data)
 }
+
+
+/*
+A static helper method that converts and appends a given (integer) value to o_binary_string 
+*/
+// 
+
+/*
+ToBinaryStr: converts an amount of bits values from the BitArray to string binary representation.
+*/
+bool BitArray::ToBinaryStr(char* o_binary_string, size_t binary_string_size) const
+{
+    if (binary_string_size > this->m_size_bits)
+    {
+        return false;
+    }
+    
+    if (binary_string_size == 0)
+    {
+        return true;
+    }
+
+    size_t offset = binary_string_size - 1;
+    for (int i = offset ; i >= 0 ; i--)
+    {
+        o_binary_string[i] = this->GetAt(offset - i) == true ? '1' : '0';
+    }
+    
+    o_binary_string[binary_string_size] = '\0';
+    return true;
+}
+
+bool BitArray::FromBinaryStr(const char* i_binary_string, size_t binary_string_length)
+{
+    //Assuming same constraint as for ToBinaryStr
+    if (binary_string_length > this->m_size_bits)
+    {
+        return false;
+    }
+    
+    //Supposing someone sends an empty string "\0"...
+    if (binary_string_length == 0)
+    {
+        return true;
+    }
+
+    for (int i = binary_string_length - 1 ; i >= 0 ; i--)
+    {
+        bool currentVal = i_binary_string[i] == '1' ? true : false;
+        this->SetAt(i, currentVal);
+    }
+
+    return true;
+}
