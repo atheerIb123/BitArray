@@ -1,43 +1,70 @@
+#include <iostream>
+#include <cstring>
+
 #include "BitArray.hpp"
 
-/*
-Constructor: Initializes an empty BitArray with no allocated memory.
- */
-BitArray::BitArray() : m_size_bits(0), m_data(nullptr) {}
+using namespace std;
 
-/*
-Copy Constructor: Creates a new BitArray as a copy of an existing one.
-*/
+static const size_t BITS_IN_BYTE = 8;
+static const size_t ROUND_UP = BITS_IN_BYTE - 1;
+
+inline size_t bitsToBytes(size_t bitsAmount)
+{
+    return (bitsAmount + ROUND_UP) / BITS_IN_BYTE;
+}
+
+//Changed to uniform initialization
+BitArray::BitArray() : m_size_bits{0}, m_data{nullptr} {}
+
 BitArray::BitArray(const BitArray& copy) : m_size_bits(copy.m_size_bits), m_data(nullptr)
 {
     if (this->m_size_bits > 0)
     {
-        size_t numBytes = (m_size_bits + 7) / 8; // Suppose I have 7 bits that occupy a space in the array. I'd like to have 1 byte and not 0 that's why I need sort of a ceil
-        this->m_data = new unsigned char[numBytes];
+        size_t numBytes = bitsToBytes(m_size_bits);
+
+        try {
+            this->m_data = new unsigned char[numBytes];
+        } 
+        catch (const bad_alloc&)
+        {
+            throw;
+        }
+
         memcpy(this->m_data, copy.m_data, numBytes);
     }
 }
 
-/*
-Destructor: Frees allocated memory when a BitArray object is destroyed.
-*/
 BitArray::~BitArray()
 {
     delete[] this->m_data;
 }
 
-/*
-expand: Expands the BitArray to fit a new size in bits.
-*/
 void BitArray::expand(size_t newSizeBits)
 {
-    size_t newAmountOfBytes = (newSizeBits + 7) / 8;
-    unsigned char* newData = new unsigned char[newAmountOfBytes];
+    size_t newAmountOfBytes = bitsToBytes(newSizeBits);
+    size_t oldAmountOfBytes = bitsToBytes(this->m_size_bits);
+
+    //Excluding the case of empty array because it should be initialized with 1 byte
+    if (this->m_size_bits > 0 && newAmountOfBytes == oldAmountOfBytes)
+    {
+        this->m_size_bits = newSizeBits;
+        return;
+    }
+
+    unsigned char* newData;
+
+    try{
+        newData = new unsigned char[newAmountOfBytes];
+    }
+    catch(const bad_alloc&)
+    {
+        throw;
+    }
+
     memset(newData, 0, newAmountOfBytes);
 
     if (m_data)
     {
-        size_t oldAmountOfBytes = (this->m_size_bits + 7) / 8;
         memcpy(newData, this->m_data, oldAmountOfBytes);
         delete[] m_data;
     }   
@@ -46,10 +73,6 @@ void BitArray::expand(size_t newSizeBits)
     this->m_data = newData;
 }
 
-/*
-SetAt: sets the bit at the specified index to the given value.
-If the index is out of the current bounds of the BitArray, we call expand.
-*/
 void BitArray::SetAt(size_t index, bool value)
 {
     if (index >= m_size_bits)
@@ -57,12 +80,12 @@ void BitArray::SetAt(size_t index, bool value)
         expand(index + 1);
     }
 
-    size_t byteIndex = index / 8;
-    size_t bitIndexInByte = index % 8;
+    size_t byteIndex = index / BITS_IN_BYTE;
+    size_t bitIndexInByte = index % BITS_IN_BYTE;
 
     unsigned char bitMask = 1 << bitIndexInByte;
 
-    if (value == true)
+    if (value)
     {
         this->m_data[byteIndex] = this->m_data[byteIndex] | bitMask;
     }
@@ -72,9 +95,6 @@ void BitArray::SetAt(size_t index, bool value)
     }
 }
 
-/*
-GetAt: returns the value of the bit at the specified index.
-*/
 bool BitArray::GetAt(size_t index) const
 {
     if (index >= this->m_size_bits)
@@ -82,9 +102,9 @@ bool BitArray::GetAt(size_t index) const
         return false;
     }
 
-    size_t indexInBytes = index / 8; //no need for ceil because we start from indexBytes = 0
-    size_t indexInSpecificByte = index % 8; //here we'd get which bit of the given byte we want to return
+    size_t indexInBytes = index / BITS_IN_BYTE; 
+    size_t indexInSpecificByte = index % BITS_IN_BYTE; 
     unsigned char bitMask = 1 << indexInSpecificByte;
     
-    return (this->m_data[indexInBytes] & bitMask) != 0; //bitwise AND for getting the value of the specific index (1 would be in the bit we'd like to return from m_data)
+    return (this->m_data[indexInBytes] & bitMask) != 0;
 }
