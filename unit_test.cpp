@@ -1,7 +1,9 @@
 #include <iostream>
 #include <cassert>
+#include <cstring>
 #include "BitArray.hpp"
 
+using namespace std;
 
 void TestDefaultConstructor()
 {
@@ -141,8 +143,8 @@ void TestToBinaryStr()
     assert(arr.ToBinaryStr(output, 8) == true);
     assert(strcmp(output, "11111111") == 0);
     
-    //test biger input size..
-    assert(arr.ToBinaryStr(output, 12) == false);
+    //test smaller input size..
+    assert(arr.ToBinaryStr(output, 3) == false);
 
     //test alternating 
     char output2[13];
